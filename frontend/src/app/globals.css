@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dark theme - tactical airbase aesthetic */
+  --color-background: #020617;
+  --color-surface: #0B1120;
+  --color-surface-elevated: #0F172A;
+  --color-border: #1F2937;
+
+  /* Text colors */
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+
+  /* Role-specific accent colors */
+  --color-pilot: #38BDF8;
+  --color-technician: #22C55E;
+  --color-commander: #EAB308;
+  --color-admin: #A855F7;
+  --color-trainee: #3B82F6;
+  --color-emergency: #EF4444;
+  --color-family: #F97316;
+
+  /* State colors */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-critical: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-text-primary;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+}
+
+@layer utilities {
+
+  /* Card styles */
+  .card {
+    @apply bg-surface border border-border rounded-lg p-4;
+  }
+
+  .card-elevated {
+    @apply bg-surface-elevated border border-border rounded-lg p-4;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(11, 17, 32, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(31, 41, 55, 0.5);
+  }
+}
