@@ -1,0 +1,389 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PILOT
+  TECHNICIAN
+  COMMANDER
+  ADMIN
+  TRAINEE
+  EMERGENCY
+  FAMILY
+  OPS_OFFICER
+}
+
+enum AircraftStatus {
+  READY
+  IN_MAINTENANCE
+  GROUNDED
+  IN_FLIGHT
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum EmergencyStatus {
+  ACTIVE
+  RESOLVING
+  COMPLETED
+}
+
+enum EmergencyType {
+  FIRE
+  RUNWAY_INCURSION
+  AIRCRAFT_EMERGENCY
+  MEDICAL
+  SECURITY
+  WEATHER
+  OTHER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  maintenanceLogs     MaintenanceLog[]
+  assignedEmergencies EmergencyAssignment[]
+  fatiguelogs         FatigueLog[]
+  trainingProgress    TrainingProgress[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  personnel           Personnel?
+  documents           Document[]
+  missions            Mission[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Aircraft {
+  id             String          @id @default(uuid())
+  tailNumber     String          @unique
+  type           String // e.g., F-16, C-130, etc.
+  model          String
+  squadron       String?
+  status         AircraftStatus  @default(READY)
+  location       String?
+  fuelLevel      Float? // Percentage
+  flightHours    Float           @default(0)
+  lastMaintenance DateTime?
+  nextMaintenance DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relations
+  maintenanceLogs MaintenanceLog[]
+  missions        Mission[]
+
+  @@index([status])
+  @@index([squadron])
+}
+
+model MaintenanceLog {
+  id          String            @id @default(uuid())
+  aircraftId  String
+  technicianId String
+  taskType    String // e.g., "Routine Inspection", "Engine Repair"
+  description String
+  status      MaintenanceStatus @default(PENDING)
+  priority    String? // HIGH, MEDIUM, LOW
+  startedAt   DateTime?
+  completedAt DateTime?
+  dueDate     DateTime?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  aircraft   Aircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+  technician User     @relation(fields: [technicianId], references: [id])
+
+  @@index([aircraftId])
+  @@index([technicianId])
+  @@index([status])
+}
+
+model Emergency {
+  id          String          @id @default(uuid())
+  type        EmergencyType
+  title       String
+  description String
+  location    String
+  status      EmergencyStatus @default(ACTIVE)
+  severity    String // CRITICAL, HIGH, MEDIUM, LOW
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  resolvedAt  DateTime?
+
+  // Relations
+  assignments EmergencyAssignment[]
+  timeline    EmergencyTimeline[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EmergencyAssignment {
+  id          String   @id @default(uuid())
+  emergencyId String
+  userId      String
+  assignedAt  DateTime @default(now())
+
+  // Relations
+  emergency Emergency @relation(fields: [emergencyId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([emergencyId, userId])
+  @@index([emergencyId])
+  @@index([userId])
+}
+
+model EmergencyTimeline {
+  id          String   @id @default(uuid())
+  emergencyId String
+  event       String // e.g., "Emergency created", "Team dispatched", "Arrived on scene"
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  emergency Emergency @relation(fields: [emergencyId], references: [id], onDelete: Cascade)
+
+  @@index([emergencyId])
+}
+
+model Personnel {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  rank       String?
+  department String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fatigueLogs FatigueLog[]
+
+  @@index([department])
+}
+
+model FatigueLog {
+  id           String   @id @default(uuid())
+  userId       String
+  personnelId  String
+  date         DateTime @default(now())
+  sleepHours   Float?
+  flightHours  Float?
+  stressLevel  Int? // 1-10 scale
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id])
+  personnel Personnel @relation(fields: [personnelId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([personnelId])
+  @@index([date])
+}
+
+model TrainingModule {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  content     String? // Could be markdown or HTML
+  duration    Int? // in minutes
+  category    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  progress TrainingProgress[]
+
+  @@index([category])
+}
+
+model TrainingProgress {
+  id        String   @id @default(uuid())
+  userId    String
+  moduleId  String
+  completed Boolean  @default(false)
+  score     Float?
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+
+  // Relations
+  user   User            @relation(fields: [userId], references: [id])
+  module TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model FamilyContent {
+  id          String   @id @default(uuid())
+  category    String // WELFARE, SERVICES, ANNOUNCEMENTS
+  title       String
+  content     String
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String // INFO, WARNING, EMERGENCY, SUCCESS
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String // e.g., "CREATE_AIRCRAFT", "UPDATE_EMERGENCY"
+  entity    String // e.g., "Aircraft", "Emergency"
+  entityId  String?
+  details   String? // JSON string with additional details
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model SystemSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  category  String? // e.g., "general", "modules", "rbac"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  filename     String
+  originalName String
+  filepath     String
+  filesize     Int // in bytes
+  mimetype     String
+  description  String?
+  allowedRoles Role[] // Array of roles that can access this document
+  tags         String[] // e.g., ["pilot_manual", "emergency_sop"]
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  uploader User @relation(fields: [uploadedBy], references: [id])
+
+  @@index([uploadedBy])
+  @@index([tags])
+}
+
+model DocumentTag {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "pilot_manual", "maintenance_sop"
+  displayName String // e.g., "Pilot Manual", "Maintenance SOP"
+  description String?
+  category    String? // e.g., "operational", "training", "emergency"
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+}
+
+enum MissionStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MissionType {
+  TRAINING
+  PATROL
+  TRANSPORT
+  MAINTENANCE_FERRY
+  SEARCH_AND_RESCUE
+  OTHER
+}
+
+model Mission {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  aircraftId  String?
+  pilotId     String?
+  startTime   DateTime
+  endTime     DateTime?
+  status      MissionStatus @default(PLANNED)
+  type        MissionType
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  aircraft Aircraft? @relation(fields: [aircraftId], references: [id])
+  pilot    User?     @relation(fields: [pilotId], references: [id])
+
+  @@index([status])
+  @@index([startTime])
+  @@index([pilotId])
+  @@index([aircraftId])
+}
+
+model WeatherSnapshot {
+  id           String   @id @default(uuid())
+  timestamp    DateTime @default(now())
+  temperature  Float
+  condition    String // e.g., "Clear", "Rain", "Snow"
+  windSpeed    Float
+  windDirection Float?
+  visibility   Float?
+  humidity     Int?
+  pressure     Int?
+  rawJson      String? // Store full API response if needed
+  createdAt    DateTime @default(now())
+
+  @@index([timestamp])
+}
