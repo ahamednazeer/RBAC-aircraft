@@ -10,6 +10,8 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MissionsModule } from './modules/missions/missions.module';
 import { WeatherModule } from './modules/weather/weather.module';
+import { PilotDashboardModule } from './modules/pilot-dashboard/pilot-dashboard.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -19,12 +21,14 @@ import { WeatherModule } from './modules/weather/weather.module';
     EmergencyModule,
     SystemSettingsModule,
     DocumentsModule,
-    DocumentsModule,
     AdminModule,
     MissionsModule,
     WeatherModule,
+    PilotDashboardModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule { }
+

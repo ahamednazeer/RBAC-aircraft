@@ -1,4 +1,4 @@
-export type Role = 'PILOT' | 'TECHNICIAN' | 'COMMANDER' | 'ADMIN' | 'TRAINEE' | 'EMERGENCY' | 'FAMILY';
+export type Role = 'PILOT' | 'TECHNICIAN' | 'COMMANDER' | 'ADMIN' | 'TRAINEE' | 'EMERGENCY' | 'FAMILY' | 'OPS_OFFICER';
 
 export type AircraftStatus = 'READY' | 'IN_MAINTENANCE' | 'GROUNDED' | 'IN_FLIGHT';
 
@@ -7,6 +7,12 @@ export type MaintenanceStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCE
 export type EmergencyStatus = 'ACTIVE' | 'RESOLVING' | 'COMPLETED';
 
 export type EmergencyType = 'FIRE' | 'RUNWAY_INCURSION' | 'AIRCRAFT_EMERGENCY' | 'MEDICAL' | 'SECURITY' | 'WEATHER' | 'OTHER';
+
+export type MissionStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+
+export type MissionType = 'TRAINING' | 'PATROL' | 'TRANSPORT' | 'MAINTENANCE_FERRY' | 'SEARCH_AND_RESCUE' | 'OTHER';
+
+export type RunwayStatus = 'OPEN' | 'CAUTION' | 'CLOSED' | 'UNKNOWN';
 
 export interface User {
     id: string;
@@ -46,6 +52,7 @@ export interface MaintenanceLog {
     notes?: string;
     aircraft?: Aircraft;
     technician?: User;
+    createdAt?: string;
 }
 
 export interface Emergency {
@@ -70,3 +77,81 @@ export interface Notification {
     isRead: boolean;
     createdAt: string;
 }
+
+export interface Mission {
+    id: string;
+    title: string;
+    description?: string;
+    aircraftId?: string;
+    pilotId?: string;
+    startTime: string;
+    endTime?: string;
+    status: MissionStatus;
+    type: MissionType;
+    originLat?: number;
+    originLon?: number;
+    originName?: string;
+    destinationLat?: number;
+    destinationLon?: number;
+    destinationName?: string;
+    createdAt: string;
+    updatedAt: string;
+    aircraft?: Aircraft;
+    pilot?: User;
+}
+
+export interface WeatherSnapshot {
+    id: string;
+    timestamp: string;
+    temperature: number;
+    condition: string;
+    windSpeed: number;
+    windDirection?: number;
+    windGust?: number;
+    visibility?: number;
+    humidity?: number;
+    pressure?: number;
+    ceiling?: number;
+    precipitation?: string;
+    precipIntensity?: number;
+    severeWeather?: string[];
+    isStale?: boolean;
+    staleSince?: string;
+    statusReason?: string;
+    rawJson?: string;
+    runwayStatus?: RunwayStatus;
+    runwayStatusReason?: string;
+    runwayStatusFactors?: string[];
+    isOverride?: boolean;
+    overrideBy?: string;
+    overrideExpiry?: string;
+    formattedWeather?: string;
+}
+
+export interface FleetStats {
+    READY: number;
+    IN_MAINTENANCE: number;
+    GROUNDED: number;
+    IN_FLIGHT: number;
+    total: number;
+}
+
+export interface PilotDashboardData {
+    missions: Mission[];
+    nextMission: Mission | null;
+    assignedAircraft: Aircraft | null;
+    fleetStats: FleetStats;
+    recentMaintenance: MaintenanceLog[];
+    weather: WeatherSnapshot | null;
+    destinationWeather?: WeatherSnapshot | null;
+    alerts: Notification[];
+    activeEmergencies: Emergency[];
+    runwayStatus: RunwayStatus | string;
+}
+
+export interface AlertsData {
+    notifications: Notification[];
+    emergencies: Emergency[];
+    total: number;
+}
+

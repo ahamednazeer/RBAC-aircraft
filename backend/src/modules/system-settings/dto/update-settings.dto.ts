@@ -7,6 +7,10 @@ export class UpdateSettingsDto {
 
     @IsString()
     @IsOptional()
+    baseLocation?: string;
+
+    @IsString()
+    @IsOptional()
     timezone?: string;
 
     @IsOptional()

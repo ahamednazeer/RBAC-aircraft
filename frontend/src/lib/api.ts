@@ -278,6 +278,81 @@ class ApiClient {
     async getSystemStats() {
         return this.request('/admin/stats');
     }
+
+    // Missions
+    async getMissions(status?: string) {
+        const query = status ? `?status=${status}` : '';
+        return this.request(`/missions${query}`);
+    }
+
+    async getMissionById(id: string) {
+        return this.request(`/missions/${id}`);
+    }
+
+    async createMission(data: any) {
+        return this.request('/missions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateMission(id: string, data: any) {
+        return this.request(`/missions/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteMission(id: string) {
+        return this.request(`/missions/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Weather
+    async getCurrentWeather() {
+        return this.request('/weather/current');
+    }
+
+    async refreshWeather() {
+        return this.request('/weather/refresh', {
+            method: 'POST',
+        });
+    }
+
+    // Pilot Dashboard
+    async getPilotDashboard() {
+        return this.request('/pilot-dashboard');
+    }
+
+    async getPilotAlerts() {
+        return this.request('/pilot-dashboard/alerts');
+    }
+
+    async acknowledgeMission(missionId: string) {
+        return this.request(`/pilot-dashboard/missions/${missionId}/acknowledge`, {
+            method: 'PATCH',
+        });
+    }
+
+    async markAlertRead(alertId: string) {
+        return this.request(`/pilot-dashboard/alerts/${alertId}/read`, {
+            method: 'PATCH',
+        });
+    }
+
+    async getMyMissions() {
+        return this.request('/missions?status=PLANNED');
+    }
+
+    // AI Chat
+    async sendChatMessage(message: string): Promise<{ success: boolean; response?: string; error?: string }> {
+        return this.request('/ai/chat', {
+            method: 'POST',
+            body: JSON.stringify({ message }),
+        });
+    }
 }
 
 export const api = new ApiClient();
+

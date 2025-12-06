@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plane } from 'lucide-react';
+import { Airplane, Lock, User } from '@phosphor-icons/react';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
@@ -41,81 +41,91 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-surface-elevated rounded-full mb-4">
-            <Plane className="w-8 h-8 text-pilot" />
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+      style={{
+        backgroundImage: 'linear-gradient(to bottom right, #0f172a, #1e293b)',
+      }}
+    >
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
+      <div className="scanlines" />
+
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-slate-900/90 border border-slate-700 rounded-sm p-8 backdrop-blur-md">
+          <div className="flex flex-col items-center mb-8">
+            <Airplane size={48} weight="duotone" className="text-blue-400 mb-4" />
+            <h1 className="text-3xl font-chivo font-bold uppercase tracking-wider text-center">
+              Flight Mission Hub
+            </h1>
+            <p className="text-slate-400 text-sm mt-2">Aviation Base Management System</p>
           </div>
-          <h1 className="text-3xl font-bold text-primary mb-2">AeroOps AI</h1>
-          <p className="text-secondary">Airbase Operations Management</p>
-        </div>
 
-        <div className="card-elevated">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-critical/20 border border-critical/50 rounded-lg p-3 text-sm text-critical">
-                {error}
-              </div>
-            )}
+          {error && (
+            <div className="bg-red-950/50 border border-red-800 rounded-sm p-3 mb-4 text-sm text-red-400">
+              {error}
+            </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-secondary mb-2">
+              <label className="block text-slate-400 text-xs uppercase tracking-wider mb-2 font-mono">
                 Username
               </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-pilot/50"
-                placeholder="Enter your username"
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border-slate-700 text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-sm placeholder:text-slate-600 font-mono text-sm pl-10 pr-3 py-2.5 border outline-none"
+                  placeholder="Enter username"
+                  data-testid="username-input"
+                  disabled={loading}
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-secondary mb-2">
+              <label className="block text-slate-400 text-xs uppercase tracking-wider mb-2 font-mono">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-pilot/50"
-                placeholder="Enter your password"
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border-slate-700 text-slate-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-sm placeholder:text-slate-600 font-mono text-sm pl-10 pr-3 py-2.5 border outline-none"
+                  placeholder="••••••••"
+                  data-testid="password-input"
+                  disabled={loading}
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-pilot text-background font-semibold rounded-lg hover:bg-pilot/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-medium tracking-wide uppercase text-sm px-4 py-3 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="login-submit-btn"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Authenticating...' : 'Access System'}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-sm text-muted text-center mb-3">Test Credentials:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="text-secondary">Pilot: <span className="text-pilot">pilot1 / pilot123</span></div>
-              <div className="text-secondary">Tech: <span className="text-technician">tech1 / tech123</span></div>
-              <div className="text-secondary">Commander: <span className="text-commander">commander / cmd123</span></div>
-              <div className="text-secondary">Admin: <span className="text-admin">admin / admin123</span></div>
+          <div className="mt-6 p-4 bg-slate-950/50 border border-slate-800 rounded-sm">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-mono">Demo Accounts:</p>
+            <div className="space-y-1 text-xs font-mono text-slate-400">
+              <div>Admin: admin / admin123</div>
+              <div>Pilot: pilot1 / pilot123</div>
+              <div>Technician: tech1 / tech123</div>
+              <div>Commander: commander / cmd123</div>
             </div>
           </div>
         </div>
-
-        <p className="text-xs text-muted text-center mt-8">
-          Secure access to operational systems • Role-based authentication
-        </p>
       </div>
     </div>
   );
 }
-

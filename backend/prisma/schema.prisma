@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -73,6 +71,7 @@ model User {
   personnel           Personnel?
   documents           Document[]
   missions            Mission[]
+  runwayOverrides     RunwayOverride[]
 
   @@index([email])
   @@index([role])
@@ -350,17 +349,23 @@ enum MissionType {
 }
 
 model Mission {
-  id          String        @id @default(uuid())
-  title       String
-  description String?
-  aircraftId  String?
-  pilotId     String?
-  startTime   DateTime
-  endTime     DateTime?
-  status      MissionStatus @default(PLANNED)
-  type        MissionType
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id              String        @id @default(uuid())
+  title           String
+  description     String?
+  aircraftId      String?
+  pilotId         String?
+  startTime       DateTime
+  endTime         DateTime?
+  status          MissionStatus @default(PLANNED)
+  type            MissionType
+  originLat       Float?        // Base/origin latitude
+  originLon       Float?        // Base/origin longitude
+  originName      String?       // Origin location name
+  destinationLat  Float?        // Destination latitude
+  destinationLon  Float?        // Destination longitude
+  destinationName String?       // Destination location name
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   // Relations
   aircraft Aircraft? @relation(fields: [aircraftId], references: [id])
@@ -373,17 +378,43 @@ model Mission {
 }
 
 model WeatherSnapshot {
-  id           String   @id @default(uuid())
-  timestamp    DateTime @default(now())
-  temperature  Float
-  condition    String // e.g., "Clear", "Rain", "Snow"
-  windSpeed    Float
-  windDirection Float?
-  visibility   Float?
-  humidity     Int?
-  pressure     Int?
-  rawJson      String? // Store full API response if needed
-  createdAt    DateTime @default(now())
+  id              String    @id @default(uuid())
+  timestamp       DateTime  @default(now())
+  temperature     Float
+  condition       String    // e.g., "Clear", "Rain", "Snow"
+  windSpeed       Float     // in m/s
+  windDirection   Float?
+  windGust        Float?    // Gust speed in m/s
+  visibility      Float?    // in meters
+  humidity        Int?
+  pressure        Int?
+  ceiling         Float?    // Cloud base in feet (estimated)
+  precipitation   String?   // None, Light Rain, Heavy Rain, Snow, etc.
+  precipIntensity Float?    // mm/hr if available
+  severeWeather   String[]  // thunderstorm, fog, icing, tornado, etc.
+  isStale         Boolean   @default(false)
+  staleSince      DateTime?
+  statusReason    String?   // Which rule triggered CAUTION/CLOSED
+  rawJson         String?   // Store full API response if needed
+  createdAt       DateTime  @default(now())
 
   @@index([timestamp])
+  @@index([isStale])
 }
+
+// Manual runway status override by Ops/Commander
+model RunwayOverride {
+  id          String    @id @default(uuid())
+  status      String    // OPEN, CAUTION, CLOSED
+  reason      String
+  operatorId  String
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  clearedAt   DateTime?
+  clearedBy   String?
+
+  operator    User      @relation(fields: [operatorId], references: [id])
+
+  @@index([createdAt])
+}
+

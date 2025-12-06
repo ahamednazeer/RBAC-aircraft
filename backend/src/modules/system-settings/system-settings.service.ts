@@ -35,6 +35,16 @@ export class SystemSettingsService {
             );
         }
 
+        if (dto.baseLocation !== undefined) {
+            updates.push(
+                this.prisma.client.systemSettings.upsert({
+                    where: { key: 'baseLocation' },
+                    update: { value: dto.baseLocation },
+                    create: { key: 'baseLocation', value: dto.baseLocation, category: 'general' },
+                }),
+            );
+        }
+
         if (dto.timezone !== undefined) {
             updates.push(
                 this.prisma.client.systemSettings.upsert({
@@ -83,6 +93,7 @@ export class SystemSettingsService {
 
         const defaults = {
             baseName: 'AeroOps Airbase',
+            baseLocation: 'London',
             timezone: 'UTC',
             modules: {
                 maintenance: true,
